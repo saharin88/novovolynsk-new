@@ -142,6 +142,24 @@ describe('Create Category Page', function () {
             ->assertHasFormErrors(['name' => 'unique'])
             ->assertNotNotified();
     });
+
+    it('can create a subcategory with a parent category', function () {
+        $parentCategory = Category::factory()->create();
+
+        livewire(CreateCategory::class)
+            ->fillForm([
+                'name' => 'Child Category',
+                'parent_id' => $parentCategory->id,
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors()
+            ->assertNotified();
+
+        assertDatabaseHas('categories', [
+            'name' => 'Child Category',
+            'parent_id' => $parentCategory->id,
+        ]);
+    });
 });
 
 describe('Edit Category Page', function () {
@@ -174,6 +192,44 @@ describe('Edit Category Page', function () {
 
         assertSoftDeleted('categories', [
             'id' => $category->id,
+        ]);
+    });
+
+    it('can assign a parent category from edit page', function () {
+        $category = Category::factory()->create();
+        $parentCategory = Category::factory()->create();
+
+        livewire(EditCategory::class, ['record' => $category->getRouteKey()])
+            ->fillForm([
+                'parent_id' => $parentCategory->id,
+            ])
+            ->call('save')
+            ->assertHasNoFormErrors()
+            ->assertNotified();
+
+        assertDatabaseHas('categories', [
+            'id' => $category->id,
+            'parent_id' => $parentCategory->id,
+        ]);
+    });
+
+    it('can remove parent category from edit page', function () {
+        $parentCategory = Category::factory()->create();
+        $childCategory = Category::factory()->create([
+            'parent_id' => $parentCategory->id,
+        ]);
+
+        livewire(EditCategory::class, ['record' => $childCategory->getRouteKey()])
+            ->fillForm([
+                'parent_id' => null,
+            ])
+            ->call('save')
+            ->assertHasNoFormErrors()
+            ->assertNotified();
+
+        assertDatabaseHas('categories', [
+            'id' => $childCategory->id,
+            'parent_id' => null,
         ]);
     });
 });

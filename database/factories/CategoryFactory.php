@@ -19,6 +19,7 @@ class CategoryFactory extends Factory
     {
         return [
             'name' => fake()->unique()->lexify('category-??????'),
+            'parent_id' => null,
         ];
     }
 }

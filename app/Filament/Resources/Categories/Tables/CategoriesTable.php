@@ -21,8 +21,24 @@ class CategoriesTable
         return $table
             ->columns([
                 TextColumn::make('name')
+                    ->label(__('Name'))
                     ->searchable()
                     ->sortable(),
+
+                TextColumn::make('items_count')
+                    ->label(__('Items'))
+                    ->alignCenter()
+                    ->counts('items')
+                    ->url(fn ($record) => route('filament.admin.resources.items.index', [
+                        'filters' => [
+                            'category' => [
+                                'value' => $record->id,
+                            ],
+                        ],
+                    ]))
+                    ->color('primary')
+                    ->sortable()
+                    ->toggleable(),
 
                 TextColumn::make('created_at')
                     ->alignCenter()
